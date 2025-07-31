@@ -4,9 +4,11 @@ using ProductService.Infrastructure;
 
 namespace ProductService.Api.Controllers;
 
+using Microsoft.AspNetCore.Authorization;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
+[Authorize]
 public class ProductsController : ControllerBase
 {
     private readonly ProductRepository _repository;
@@ -20,7 +22,7 @@ public class ProductsController : ControllerBase
     /// Obtiene todos los productos.
     /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Product>>> GetAll()
+    public async Task<ActionResult<IEnumerable<ProductService.Core.Product>>> GetAll()
     {
         var products = await _repository.GetAllAsync();
         return Ok(products);
@@ -30,7 +32,7 @@ public class ProductsController : ControllerBase
     /// Obtiene un producto por su id.
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<Product>> GetById(int id)
+    public async Task<ActionResult<ProductService.Core.Product>> GetById(int id)
     {
         var product = await _repository.GetByIdAsync(id);
         if (product == null) return NotFound();
@@ -41,7 +43,7 @@ public class ProductsController : ControllerBase
     /// Crea un nuevo producto.
     /// </summary>
     [HttpPost]
-    public async Task<ActionResult<Product>> Create(Product product)
+    public async Task<ActionResult<ProductService.Core.Product>> Create(ProductService.Core.Product product)
     {
         await _repository.AddAsync(product);
         return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
@@ -51,7 +53,7 @@ public class ProductsController : ControllerBase
     /// Actualiza un producto existente.
     /// </summary>
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, Product product)
+    public async Task<IActionResult> Update(int id, ProductService.Core.Product product)
     {
         if (id != product.Id) return BadRequest();
         await _repository.UpdateAsync(product);

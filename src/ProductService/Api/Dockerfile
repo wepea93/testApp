@@ -21,4 +21,5 @@ RUN dotnet publish "Product.Api.csproj" -c Release -o /app/publish /p:UseAppHost
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Product.Api.dll"]
+# Ejecutar migraciones antes de iniciar la API
+ENTRYPOINT ["/bin/sh", "-c", "dotnet ef database update --no-build --project /app/../Infrastructure/Product.Infrastructure.csproj --startup-project /app/Product.Api.dll; dotnet Product.Api.dll"]
