@@ -20,7 +20,7 @@ builder.Services.AddSwaggerGen(options =>
 
 // Configuración de EF Core con SQL Server
 builder.Services.AddDbContext<ProductsDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ProductsDb")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<ProductRepository>();
 

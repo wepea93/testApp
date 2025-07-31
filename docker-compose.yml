@@ -1,29 +1,30 @@
-version: '3.8'
 services:
   db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: mcr.microsoft.com/mssql/server:2022-CU12-ubuntu-20.04
     container_name: sqlserver
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=Your_password123
+      - SA_PASSWORD=TestApp2025!
     ports:
       - "1433:1433"
     healthcheck:
-      test: ["CMD-SHELL", "sqlcmd -S localhost -U sa -P Your_password123 -Q 'SELECT 1' || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD-SHELL", "sqlcmd -S localhost -U sa -P TestApp2025! -Q 'SELECT 1' || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
     networks:
       - productsnet
+    #volumes:
+    #  - sqlserverdata:/var/opt/mssql
 
   productsapi:
     build:
-      context: .
-      dockerfile: ProductsApi/Dockerfile
-    container_name: productsapi
+      context: ./src/ProductService
+      dockerfile: Api/Dockerfile
+    container_name: ProductService
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=db;Database=ProductsDb;User=sa;Password=Your_password123;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=db;Database=ProductsDb;User=sa;Password=TestApp2025!;TrustServerCertificate=True;
     ports:
       - "5000:80"
     depends_on:
@@ -35,3 +36,5 @@ services:
 networks:
   productsnet:
     driver: bridge
+volumes:
+  sqlserverdata:
