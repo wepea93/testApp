@@ -34,6 +34,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Ejecutar migraciones de EF automáticamente al iniciar
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ProductsDbContext>();
+    db.Database.Migrate();
+}
+
 app.UseAuthorization();
 app.MapControllers();
 
