@@ -39,6 +39,8 @@ builder.Services.AddScoped<ProductRepository>();
 
 builder.Services.AddMassTransit(x =>
 {
+    x.AddConsumer<GetProductByIdConsumer>();
+    
     x.UsingRabbitMq((ctx, cfg) =>
     {
         cfg.Host("rabbitmq", "/", h =>

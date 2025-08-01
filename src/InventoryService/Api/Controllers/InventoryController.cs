@@ -1,24 +1,27 @@
 using Microsoft.AspNetCore.Mvc;
-using InventoryService.Core;
 using InventoryService.Infrastructure;
-
-
 using Microsoft.AspNetCore.Authorization;
+using MassTransit;
+using InventoryService.Core.Contracts;
+using InventoryService.Api.DTO;
+
+
 namespace InventoryService.Api.Controllers;
 
-[
-    ApiController,
-    Route("api/[controller]"),
-    Produces("application/json"),
-    Authorize
-]
+[ApiController]
+[Route("api/[controller]")]
+[Produces("application/json")]
+[Authorize]
 public class InventoryController : ControllerBase
 {
     private readonly InventoryRepository _repository;
+    private readonly IRequestClient<IGetProductById> _productRequestClient;
 
-    public InventoryController(InventoryRepository repository)
+    public InventoryController(InventoryRepository repository,
+        IRequestClient<IGetProductById> productRequestClient)
     {
         _repository = repository;
+        _productRequestClient = productRequestClient;
     }
 
     /// <summary>
@@ -32,27 +35,71 @@ public class InventoryController : ControllerBase
         return Ok(Inventory);
     }
 
-
-    
     /// <summary>
     /// Obtiene todos los inventario.
     /// </summary>
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Core.Inventory>>> GetAll()
+    [HttpGet("/")]
+    public async Task<ActionResult<IEnumerable<InventoryWithProductDto>>> GetAll()
     {
-        var inventories = await _repository.    ();
-        return Ok(inventories);
+        var inventories = await _repository.GetAllAsync();
+        var result = new List<InventoryWithProductDto>();
+
+        foreach (var inv in inventories)
+        {
+            var response = await _productRequestClient.GetResponse<IProductResponse>(new
+            {
+                ProductId = inv.ProductId
+            });
+
+            var product = response.Message;
+
+            result.Add(new InventoryWithProductDto
+            {
+                ProductId = inv.ProductId,
+                Quantity = inv.Quantity,
+                Product = new ProductDto
+                {
+                    Id = product.Id,
+                    Name = product.Name,
+                    Description = product.Description,
+                    Price = product.Price
+                }
+            });
+        }
+
+        return Ok(result);
     }
 
     /// <summary>
     /// Obtiene un inventario por su id.
     /// </summary>
     [HttpGet("{id}")]
-    public async Task<ActionResult<Core.Inventory>> GetById(int id)
+    public async Task<ActionResult<InventoryWithProductDto>> GetById(int id)
     {
         var inventory = await _repository.GetByIdAsync(id);
         if (inventory == null) return NotFound();
-        return Ok(inventory);
+
+        var response = await _productRequestClient.GetResponse<IProductResponse>(new
+        {
+            ProductId = inventory.ProductId
+        });
+
+        var product = response.Message;
+
+        var result = new InventoryWithProductDto
+        {
+            ProductId = inventory.ProductId,
+            Quantity = inventory.Quantity,
+            Product = new ProductDto
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price
+            }
+        };
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -82,7 +129,7 @@ public class InventoryController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _repository.DeleteAsync(id);        
+        await _repository.DeleteAsync(id);
         return NoContent();
     }
 }

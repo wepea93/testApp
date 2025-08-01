@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using ProductService.Core.Contracts;
 using ProductService.Infrastructure;
 using MassTransit;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ProductService.Api.Controllers;
 
-using Microsoft.AspNetCore.Authorization;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]

@@ -45,6 +45,7 @@ builder.Services.AddMassTransit(x =>
 
     x.UsingRabbitMq((ctx, cfg) =>
     {
+        
         cfg.Host("rabbitmq", "/", h =>
         {
             h.Username("guest");
@@ -56,7 +57,10 @@ builder.Services.AddMassTransit(x =>
             e.ConfigureConsumer<ProductCreatedConsumer>(ctx);
             e.ConfigureConsumer<ProductDeletedConsumer>(ctx);
         });
+
     });
+    
+    x.AddRequestClient<IGetProductById>();
 });
 
 var app = builder.Build();
