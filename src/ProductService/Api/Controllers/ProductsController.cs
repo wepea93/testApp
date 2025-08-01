@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using ProductService.Core;
+using ProductService.Core.Contracts;
 using ProductService.Infrastructure;
+using MassTransit;
 
 namespace ProductService.Api.Controllers;
 
@@ -13,10 +14,7 @@ public class ProductsController : ControllerBase
 {
     private readonly ProductRepository _repository;
 
-    public ProductsController(ProductRepository repository)
-    {
-        _repository = repository;
-    }
+    public ProductsController(ProductRepository repository, IPublishEndpoint publishEndpoint) => _repository = repository;
 
     /// <summary>
     /// Obtiene todos los productos.
@@ -66,7 +64,7 @@ public class ProductsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _repository.DeleteAsync(id);
+        await _repository.DeleteAsync(id);        
         return NoContent();
     }
 }

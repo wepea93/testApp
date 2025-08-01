@@ -1,6 +1,7 @@
 using ProductService.Api;
 using ProductService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://0.0.0.0:8080");
@@ -36,6 +37,17 @@ builder.Services.AddDbContext<ProductsDbContext>(options =>
 
 builder.Services.AddScoped<ProductRepository>();
 
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((ctx, cfg) =>
+    {
+        cfg.Host("rabbitmq", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+    });
+});
 
 var app = builder.Build();
 

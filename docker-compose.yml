@@ -49,6 +49,22 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      depends_on:
+        - rabbitmq
+      networks:
+        - testAppNet
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672" # para acceder al dashboard en http://localhost:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - testAppNet
 

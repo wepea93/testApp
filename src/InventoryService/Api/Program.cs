@@ -1,6 +1,8 @@
 using InventoryService.Api;
+using InventoryService.Core.Contracts;
 using InventoryService.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://0.0.0.0:8080");
@@ -36,6 +38,26 @@ builder.Services.AddDbContext<InventoryDbContext>(options =>
 
 builder.Services.AddScoped<InventoryRepository>();
 
+builder.Services.AddMassTransit(x =>
+{
+    x.AddConsumer<ProductCreatedConsumer>();
+    x.AddConsumer<ProductDeletedConsumer>();
+
+    x.UsingRabbitMq((ctx, cfg) =>
+    {
+        cfg.Host("rabbitmq", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+
+        cfg.ReceiveEndpoint("inventory-events", e =>
+        {
+            e.ConfigureConsumer<ProductCreatedConsumer>(ctx);
+            e.ConfigureConsumer<ProductDeletedConsumer>(ctx);
+        });
+    });
+});
 
 var app = builder.Build();
 
